@@ -155,8 +155,8 @@ Side at N+1 = +1, entry_direction = "positive"  →  counted as ENTRY.
 git clone https://github.com/Abdokt/vision_sentinel.git
 cd vision_sentinel
 
-conda create -n ocr310_clean python=3.10
-conda activate ocr310_clean
+conda create -n vision-sentinel python=3.10
+conda activate vision-sentinel
 pip install -r requirements.txt
 ```
 
