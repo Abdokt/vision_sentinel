@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ Vision Sentinel
+# Vision Sentinel
 
 **Real-time multi-camera occupancy counting and people detection system**
 
@@ -10,7 +10,7 @@
 [![CUDA](https://img.shields.io/badge/CUDA-GPU_Accelerated-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
 [![OpenCV](https://img.shields.io/badge/OpenCV-DirectShow-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org)
 [![Platform](https://img.shields.io/badge/Platform-Windows_11-0078D6?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
-[![License](https://img.shields.io/badge/License-MIT-22c55e)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue)](LICENSE)
 
 <br/>
 
@@ -18,14 +18,14 @@
 
 <br/>
 
-| 🎯 9–10 FPS per camera | 🔍 Configurable confidence threshold | ⚡ CUDA GPU inference | 🌐 Zero-install web dashboard |
+| 9–10 FPS per camera | Configurable confidence threshold | CUDA GPU inference | Zero-install web dashboard |
 |:---:|:---:|:---:|:---:|
 
 </div>
 
 ---
 
-## 📖 Overview
+## Overview
 
 **Vision Sentinel** is a production-grade computer vision pipeline that uses deep learning to monitor building entrances in real time. It tracks every person who crosses a configurable virtual tripwire line, keeping a live count of entries, exits, and current occupancy — all visible from a browser-based dashboard, with no app install required on the client side.
 
@@ -35,15 +35,15 @@ Built as a freelancing portfolio project, it demonstrates end-to-end systems des
 
 | Industry | Application |
 |---|---|
-| 🏪 Retail | Store capacity compliance, peak-hour footfall analysis |
-| 🍽️ Hospitality | Restaurant and venue occupancy enforcement |
-| 🏢 Corporate | Building access monitoring, floor occupancy logging |
-| 🎪 Events | Crowd management, zone capacity alerts |
-| 🏥 Healthcare | Waiting room overflow detection |
+| Retail | Store capacity compliance, peak-hour footfall analysis |
+| Hospitality | Restaurant and venue occupancy enforcement |
+| Corporate | Building access monitoring, floor occupancy logging |
+| Events | Crowd management, zone capacity alerts |
+| Healthcare | Waiting room overflow detection |
 
 ---
 
-## ✨ Features
+## Features
 
 - **Real-time detection** — YOLO11n detects and tracks people at 9–10 FPS per camera on a mid-range GPU
 - **ByteTrack tracking** — persistent person IDs across frames eliminate double-counting at the tripwire
@@ -58,16 +58,16 @@ Built as a freelancing portfolio project, it demonstrates end-to-end systems des
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph HW["📷 Hardware"]
+    subgraph HW["Hardware"]
         CAM0["Logitech C920\n(Door · Counting)"]
         CAM1["Laptop Webcam\n(Room · Monitoring)"]
     end
 
-    subgraph THREADS["⚙️  Background Threads"]
+    subgraph THREADS["Background Threads"]
         SR0["StreamReader 0\nCAP_DSHOW · validate · reconnect"]
         SR1["StreamReader 1\nCAP_DSHOW · validate · reconnect"]
         DET0["Detector 0\nYOLO11n + ByteTrack\n+ LineCrossCounter"]
@@ -75,13 +75,13 @@ flowchart TB
         WD["WindowsDeviceWatchdog\nPnP polling · 2 s interval"]
     end
 
-    subgraph ASYNC["⚡ FastAPI · asyncio"]
+    subgraph ASYNC["FastAPI · asyncio"]
         WS0["WebSocket /ws/cam0"]
         WS1["WebSocket /ws/cam1"]
         REST["REST /api/*"]
     end
 
-    subgraph BROWSER["🖥️  Browser Dashboard"]
+    subgraph BROWSER["Browser Dashboard"]
         FEED["Live Video Feeds"]
         COUNTER["Occupancy Counter"]
         CHARTS["FPS + System Charts"]
@@ -104,7 +104,7 @@ flowchart TB
     REST -.->|"tripwire · reset · enable/disable"| ASYNC
 ```
 
-### How the crossing logic works
+### Crossing logic
 
 ```
 Frame N:   person centroid above the line  →  side = −1
@@ -115,14 +115,14 @@ Side at N+1 = +1, entry_direction = "positive"  →  counted as ENTRY.
 ```
 
 1. Every frame, each tracked person's centroid is compared to the tripwire line using a **2D cross product**
-2. A sign change in the cross product between consecutive frames signals a crossing
-3. The direction (which side they ended up on) determines **entry** vs **exit**
+2. A sign change between consecutive frames signals a crossing
+3. The direction (which side they ended up on) determines entry vs exit
 4. A `crossed_ids` set prevents the same physical crossing from being counted twice
 5. When the track ID disappears, it is cleared — the same person can be counted again on re-entry
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|
@@ -140,20 +140,20 @@ Side at N+1 = +1, entry_direction = "positive"  →  counted as ENTRY.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
 - Windows 10 or Windows 11
 - Python 3.10 (conda recommended)
-- NVIDIA GPU with CUDA drivers (CPU fallback is available via `DEVICE=cpu`)
+- NVIDIA GPU with CUDA drivers (CPU fallback available via `DEVICE=cpu`)
 - One or two USB or built-in webcams
 
 ### 1 — Clone and create environment
 
 ```bash
-git clone https://github.com/your-username/vision-sentinel.git
-cd vision-sentinel
+git clone https://github.com/Abdokt/vision_sentinel.git
+cd vision_sentinel
 
 conda create -n ocr310_clean python=3.10
 conda activate ocr310_clean
@@ -176,31 +176,33 @@ CAMERA_0_ENABLED=true
 CAMERA_1_ENABLED=true
 ```
 
-> **Finding your camera indexes** — run this in Python:
-> ```python
-> import cv2
-> for i in range(6):
->     cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
->     if cap.isOpened():
->         print(f"Camera found at index {i}")
->         cap.release()
-> ```
+**Finding your camera indexes** — run this in Python:
 
-> **Finding your PnP device names** (needed for hot-plug detection) — run in PowerShell:
-> ```powershell
-> Get-PnpDevice -Status OK | Where-Object { $_.Class -in 'Image','Camera' } | Select-Object FriendlyName
-> ```
-> Copy the exact names into `CAMERA_0_DEVICE_NAME` and `CAMERA_1_DEVICE_NAME`.
+```python
+import cv2
+for i in range(6):
+    cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+    if cap.isOpened():
+        print(f"Camera found at index {i}")
+        cap.release()
+```
+
+**Finding your PnP device names** (required for hot-plug detection) — run in PowerShell:
+
+```powershell
+Get-PnpDevice -Status OK | Where-Object { $_.Class -in 'Image','Camera' } | Select-Object FriendlyName
+```
+
+Copy the exact names into `CAMERA_0_DEVICE_NAME` and `CAMERA_1_DEVICE_NAME`.
 
 ### 3 — Run
 
 ```bash
 # Must be run from inside the vision_sentinel/ directory
-cd vision_sentinel
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --ws-ping-interval 0
 ```
 
-> ⚠️ **Never add `--reload`** — it spawns two processes that both grab the cameras simultaneously.
+> **Note:** never add `--reload` — it spawns two processes that both grab the cameras simultaneously.
 
 ### 4 — Open the dashboard
 
@@ -208,7 +210,7 @@ Visit **[http://localhost:8000](http://localhost:8000)** in any browser on the s
 
 ---
 
-## ⚙️ Configuration Reference
+## Configuration Reference
 
 All settings live in `.env`. The server reads them on startup. Camera enable/disable can also be toggled live via the dashboard or API without restarting.
 
@@ -229,7 +231,7 @@ All settings live in `.env`. The server reads them on startup. Camera enable/dis
 | `DEVICE` | `cuda` | `cuda` for GPU · `cpu` for CPU-only |
 | `FRAME_SKIP` | `1` | Process every Nth frame. `2` skips every other frame for higher throughput |
 | `JPEG_QUALITY` | `75` | Stream JPEG quality (1–100). Lower = smaller frames, less bandwidth |
-| `MAX_OCCUPANCY` | `3` | Capacity threshold that triggers the red alert banner and audio beep |
+| `MAX_OCCUPANCY` | `3` | Capacity threshold that triggers the alert banner and audio beep |
 | `ENABLE_DEVICE_WATCHDOG` | `true` | Poll Windows PnP device list for USB disconnect/reconnect |
 | `CAMERA_0_DEVICE_NAME` | `HD Pro Webcam C920` | Exact PnP FriendlyName for camera 0 watchdog |
 | `CAMERA_1_DEVICE_NAME` | `Integrated Camera` | Exact PnP FriendlyName for camera 1 watchdog |
@@ -240,7 +242,7 @@ All settings live in `.env`. The server reads them on startup. Camera enable/dis
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -259,9 +261,8 @@ All settings live in `.env`. The server reads them on startup. Camera enable/dis
 ### WebSocket protocol
 
 ```jsonc
-// Every frame: binary JPEG bytes sent first, then a JSON metadata message
+// Every frame: binary JPEG bytes first, then a JSON metadata message
 
-// Detection metadata
 {
   "type": "meta",
   "camera": "Logitech",
@@ -278,31 +279,31 @@ All settings live in `.env`. The server reads them on startup. Camera enable/dis
   }
 }
 
-// Camera state changes
+// State change events
 { "type": "disconnected", "camera": "Logitech" }
 { "type": "reconnected",  "camera": "Logitech" }
 { "type": "enabled",      "camera": "cam0" }
 { "type": "disabled",     "camera": "cam0" }
-{ "type": "keepalive" }   // sent on 2 s queue timeout — keeps the connection alive
+{ "type": "keepalive" }
 ```
 
 ---
 
-## 📷 Camera Setup Guide
+## Camera Setup Guide
 
-### Positioning the door camera
+### Positioning
 
 ```
-         ┌──────────────────────────────────┐
-         │                                  │
-         │   [ OUTSIDE / ENTRANCE AREA ]    │  ← EXIT zone  (red tint on feed)
-         │                                  │
-         │ ══════════ TRIPWIRE ══════════   │  ← Adjustable green line
-         │                                  │
-         │   [  INSIDE / ROOM AREA      ]   │  ← ENTRY zone (green tint on feed)
-         │                                  │
-         │              📷                  │  ← Camera above the door, facing into room
-         └──────────────────────────────────┘
+         +----------------------------------+
+         |                                  |
+         |   [ OUTSIDE / ENTRANCE AREA ]    |  <- EXIT zone  (red tint on feed)
+         |                                  |
+         | ========= TRIPWIRE =========    |  <- Adjustable line
+         |                                  |
+         |   [  INSIDE / ROOM AREA      ]   |  <- ENTRY zone (green tint on feed)
+         |                                  |
+         |           [camera]               |  <- Mounted above door, facing into room
+         +----------------------------------+
 ```
 
 Mount the camera **above the door frame, facing into the room**. The lens should capture both the entrance area (outside) and the space just inside.
@@ -311,16 +312,16 @@ Mount the camera **above the door frame, facing into the room**. The lens should
 
 With the default `entry_direction=positive`:
 
-| Movement | Y change | Counted as |
+| Movement | Y change in frame | Counted as |
 |---|---|---|
-| Person walks **toward** the camera (entering) | Y **increases** | ✅ ENTRY |
-| Person walks **away** from the camera (leaving) | Y **decreases** | 🚪 EXIT |
+| Person walks toward the camera (entering) | Y increases | ENTRY |
+| Person walks away from the camera (leaving) | Y decreases | EXIT |
 
-If entries and exits are swapped, toggle the direction by posting to `/api/tripwire` with `"entry_direction": "negative"`.
+If entries and exits appear swapped, post to `/api/tripwire` with `"entry_direction": "negative"`.
 
-### Moving the tripwire line
+### Adjusting the tripwire line
 
-The tripwire slider in the dashboard moves the line up and down. For precise placement, post directly to the API:
+The dashboard slider moves the line vertically. For precise placement, use the API directly:
 
 ```bash
 curl -X POST http://localhost:8000/api/tripwire \
@@ -328,50 +329,50 @@ curl -X POST http://localhost:8000/api/tripwire \
   -d '{"x1": 0.0, "y1": 0.45, "x2": 1.0, "y2": 0.45, "entry_direction": "positive"}'
 ```
 
-Coordinates are normalized (0.0 = top/left, 1.0 = bottom/right), so they work at any resolution.
+Coordinates are normalized (0.0 = top/left, 1.0 = bottom/right) and work at any resolution.
 
 ---
 
-## 📊 Performance
+## Performance
 
 Measured on the development hardware:
 
 | Hardware | Spec |
 |---|---|
 | GPU | NVIDIA GeForce GTX 1650 (4 GB VRAM) |
-| Model | YOLO11n — 6 MB, 320K parameters |
+| Model | YOLO11n — 6 MB |
 | Cameras | 640×480 @ 30 fps, DirectShow |
 
 | Metric | Value |
 |---|---|
 | Detection FPS (per camera) | ~9–10 FPS |
 | GPU utilization | ~23% |
-| CPU utilization | ~80–90% *(bottleneck)* |
+| CPU utilization | ~80–90% (bottleneck) |
 | JPEG frame size over WebSocket | ~15 KB at quality 75 |
 | End-to-end latency | ~100 ms |
 
-> **Performance tips:**
-> - Set `FRAME_SKIP=2` to roughly double throughput at the cost of tracking smoothness
-> - Set `INFERENCE_SIZE=320` for ~30% faster inference with slightly lower accuracy
-> - Set `DEVICE=cpu` on machines without an NVIDIA GPU (expect ~2–4 FPS)
+**Performance tips:**
+- Set `FRAME_SKIP=2` to roughly double throughput at the cost of tracking smoothness
+- Set `INFERENCE_SIZE=320` for ~30% faster inference with slightly lower accuracy
+- Set `DEVICE=cpu` on machines without an NVIDIA GPU (expect ~2–4 FPS)
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
 | Limitation | Details |
 |---|---|
-| **Windows only** | Uses `CAP_DSHOW` and a PowerShell PnP watchdog. Linux/Mac require a different camera backend (`v4l2` or `""`) and no watchdog. |
-| **Single counting line** | One virtual tripwire per camera. Multi-zone counting is not yet supported. |
-| **Camera angle matters** | Optimal accuracy requires the camera to face into the room from above the door. Overhead or angled views reduce detection accuracy. |
-| **Simultaneous crossings** | Two people crossing the tripwire at the exact same frame may be counted as one. |
-| **CPU bound** | At ~80–90% CPU utilization, other running applications may cause FPS to drop below 9. |
-| **No data persistence** | Counters reset on server restart. No database or CSV export yet. |
-| **Docker on Windows** | `CAP_DSHOW` is unavailable inside Linux containers. Docker deployment requires an RTSP IP camera source and a Linux-compatible backend. |
+| Windows only | Uses `CAP_DSHOW` and a PowerShell PnP watchdog. Linux/Mac require a different camera backend and no watchdog. |
+| Single counting line | One virtual tripwire per camera. Multi-zone counting is not yet supported. |
+| Camera angle matters | Optimal accuracy requires the camera to face into the room from above the door. Overhead or angled views reduce detection accuracy. |
+| Simultaneous crossings | Two people crossing the tripwire in the exact same frame may be counted as one. |
+| CPU bound | At ~80–90% CPU utilization, other running applications may reduce FPS. |
+| No data persistence | Counters reset on server restart. No database or CSV export yet. |
+| Docker on Windows | `CAP_DSHOW` is unavailable in Linux containers. Docker deployment requires an RTSP camera source. |
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 vision_sentinel/
@@ -388,24 +389,24 @@ vision_sentinel/
 ├── models/
 │   └── yolo11n.pt     # YOLO11 nano weights (~6 MB)
 ├── logs/
-├── .env               # Your secrets and config — never committed
-├── .env.example       # Safe template — commit this
+├── .env               # Local secrets and config — not committed
+├── .env.example       # Configuration template
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🤝 About This Project
+## About This Project
 
-This project was built as a **freelancing portfolio piece** to demonstrate production-level Python systems design with computer vision. It covers:
+This project was built as a freelancing portfolio piece to demonstrate production-level Python systems design with computer vision. Key areas covered:
 
-- **Concurrent pipeline** — threading + asyncio, safely bridged via `asyncio.run_coroutine_threadsafe`
+- **Concurrent pipeline** — threading and asyncio safely bridged via `asyncio.run_coroutine_threadsafe`
 - **Real-time video streaming** — binary WebSocket delivery, bounded queues, stale-frame dropping
 - **GPU-accelerated inference** — YOLO11 + ByteTrack with CUDA, two independent model instances
 - **Windows hardware integration** — DirectShow, PnP watchdog via PowerShell, USB hot-plug handling
-- **Clean REST API** — rate limiting, CORS, API key auth, pydantic-validated config
-- **Geometry** — 2D cross product–based line crossing detection, normalized coordinates
+- **Clean REST API** — rate limiting, CORS, API key auth, pydantic-validated configuration
+- **Geometry** — 2D cross product line crossing detection with normalized coordinates
 
 ---
 
@@ -414,9 +415,9 @@ I take on freelancing projects for retail, hospitality, and facility management 
 
 ---
 
-## 📄 License
+## License
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
+Distributed under the Apache 2.0 License. See [`LICENSE`](LICENSE) for details.
 
 ---
 
