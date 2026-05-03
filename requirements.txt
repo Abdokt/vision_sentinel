@@ -1,0 +1,21 @@
+# Core detection & tracking
+ultralytics==8.3.150
+
+# API server
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+
+# Configuration & secrets
+python-dotenv==1.0.1
+pydantic-settings==2.6.1
+
+# System monitoring
+psutil==6.1.0
+gputil==1.4.0
+
+# Security
+slowapi==0.1.9
+
+# Logging
+loguru==0.7.3

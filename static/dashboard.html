@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Sentinel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #151820;
+            --surface2: #1c2030;
+            --border: #2a2f3d;
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --blue: #3b82f6;
+            --teal: #14b8a6;
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --purple: #a855f7;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        /* ── header ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .75rem 1.5rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .4;
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+        }
+
+        .status-pill .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        /* ── layout ── */
+        .main {
+            display: grid;
+            grid-template-rows: auto auto auto;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ── stat cards ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: .75rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem;
+        }
+
+        .stat-card .s-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .s-value {
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .stat-card .s-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .c-blue {
+            color: var(--blue);
+        }
+
+        .c-teal {
+            color: var(--teal);
+        }
+
+        .c-green {
+            color: var(--green);
+        }
+
+        .c-amber {
+            color: var(--amber);
+        }
+
+        .c-red {
+            color: var(--red);
+        }
+
+        .c-purple {
+            color: var(--purple);
+        }
+
+        /* ── video feeds ── */
+        .feeds-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .feeds-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feed-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .5rem .85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feed-header .cam-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .feed-badges {
+            display: flex;
+            gap: .4rem;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .badge.connected {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .badge.fps {
+            color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .cam-toggle-btn {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            line-height: 1.4;
+            transition: border-color .15s, color .15s, background .15s;
+        }
+
+        .cam-toggle-btn:hover:not(:disabled) {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .cam-toggle-btn.is-disabled {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .cam-toggle-btn.is-disabled:hover:not(:disabled) {
+            background: rgba(34, 197, 94, .1);
+        }
+
+        .cam-toggle-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .feed-img-wrap {
+            position: relative;
+            background: #000;
+            aspect-ratio: 4/3;
+        }
+
+        .feed-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .feed-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: .4rem .7rem;
+            background: linear-gradient(transparent, rgba(0, 0, 0, .7));
+            font-size: 11px;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── bottom row: charts + log ── */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 320px;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1100px) {
+            .bottom-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .event-log {
+                display: none;
+            }
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem;
+        }
+
+        .chart-card h3 {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .75rem;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 160px;
+        }
+
+        /* ── event log ── */
+        .event-log {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-log h3 {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .75rem;
+            flex-shrink: 0;
+        }
+
+        .log-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 200px;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 11px;
+            padding: 4px 6px;
+            border-radius: 5px;
+            background: var(--surface2);
+            animation: fadein .2s ease;
+        }
+
+        @keyframes fadein {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .log-time {
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .log-cam {
+            color: var(--blue);
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        .log-text {
+            color: var(--text);
+        }
+
+        /* ── scrollbar ── */
+        .log-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .log-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <div class="logo-dot"></div>
+            Vision Sentinel
+        </div>
+        <div class="header-right">
+            <span id="uptime-display">Uptime: 0s</span>
+            <div class="status-pill">
+                <div class="dot"></div>
+                <span>Live</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="capacity-alert" style="
+      display: none;
+      background: #7f1d1d;
+      border-bottom: 1px solid #ef4444;
+      padding: .6rem 1.5rem;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fca5a5;
+      text-align: center;
+      letter-spacing: .02em;
+    ">
+        CAPACITY REACHED &mdash; Maximum occupancy of <span id="alert-max">3</span> people exceeded
+    </div>
+
+    <div class="main">
+
+        <!-- stat cards -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="s-label">Cam 0 FPS</div>
+                <div class="s-value c-blue" id="s-fps0">&mdash;</div>
+                <div class="s-sub" id="s-cam0-name">Connecting...</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">Cam 1 FPS</div>
+                <div class="s-value c-teal" id="s-fps1">&mdash;</div>
+                <div class="s-sub" id="s-cam1-name">Connecting...</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">CPU</div>
+                <div class="s-value c-amber" id="s-cpu">&mdash;</div>
+                <div class="s-sub">percent</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">RAM</div>
+                <div class="s-value c-purple" id="s-ram">&mdash;</div>
+                <div class="s-sub" id="s-ram-detail">used / total</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">GPU</div>
+                <div class="s-value c-green" id="s-gpu">&mdash;</div>
+                <div class="s-sub" id="s-gpu-name">detecting...</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">GPU Memory</div>
+                <div class="s-value c-red" id="s-gmem">&mdash;</div>
+                <div class="s-sub" id="s-gmem-detail">MB used</div>
+            </div>
+            <div class="stat-card" style="border-color: var(--border)">
+                <div class="s-label">Occupancy</div>
+                <div class="s-value" id="s-occupancy" style="color: var(--green)">0</div>
+                <div class="s-sub" id="s-occ-detail">of 3 max</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">Entries</div>
+                <div class="s-value c-blue" id="s-entries">0</div>
+                <div class="s-sub">total today</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label">Exits</div>
+                <div class="s-value c-teal" id="s-exits">0</div>
+                <div class="s-sub">total today</div>
+            </div>
+        </div>
+
+        <!-- video feeds -->
+        <div class="feeds-row">
+            <div class="feed-card">
+                <div class="feed-header">
+                    <span class="cam-name" id="cam0-title">Camera 0</span>
+                    <div class="feed-badges">
+                        <span class="badge fps" id="cam0-fps-badge">&mdash; FPS</span>
+                        <span class="badge" id="cam0-status-badge">connecting</span>
+                        <button class="cam-toggle-btn" id="cam0-toggle-btn"
+                            onclick="toggleCamera('cam0')">Disable</button>
+                    </div>
+                </div>
+                <div class="feed-img-wrap">
+                    <img id="feed0" alt="Camera 0 feed" />
+                    <div class="feed-overlay" id="overlay0">Connecting to stream...</div>
+                </div>
+            </div>
+            <div class="feed-card">
+                <div class="feed-header">
+                    <span class="cam-name" id="cam1-title">Camera 1</span>
+                    <div class="feed-badges">
+                        <span class="badge fps" id="cam1-fps-badge">&mdash; FPS</span>
+                        <span class="badge" id="cam1-status-badge">connecting</span>
+                        <button class="cam-toggle-btn" id="cam1-toggle-btn"
+                            onclick="toggleCamera('cam1')">Disable</button>
+                    </div>
+                </div>
+                <div class="feed-img-wrap">
+                    <img id="feed1" alt="Camera 1 feed" />
+                    <div class="feed-overlay" id="overlay1">Connecting to stream...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- charts + log -->
+        <div class="bottom-row">
+            <div class="chart-card">
+                <h3>FPS &mdash; both cameras</h3>
+                <div class="chart-wrap">
+                    <canvas id="chart-fps"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>System resources</h3>
+                <div class="chart-wrap">
+                    <canvas id="chart-sys"></canvas>
+                </div>
+            </div>
+            <div class="event-log">
+                <h3>Detection log</h3>
+                <div class="log-list" id="log-list"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ── chart setup ────────────────────────────────────────────────────────────────
+        const MAX_POINTS = 60;  // 60 data points = ~60 seconds of history
+
+        function makeLabels() {
+            return Array(MAX_POINTS).fill('');
+        }
+
+        function chartDefaults() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { display: false }, grid: { color: '#1c2030' } },
+                    y: {
+                        ticks: { color: '#64748b', font: { size: 10 } },
+                        grid: { color: '#1c2030' },
+                        min: 0,
+                    },
+                },
+            };
+        }
+
+        // FPS chart
+        const fpsCtx = document.getElementById('chart-fps').getContext('2d');
+        const fpsChart = new Chart(fpsCtx, {
+            type: 'line',
+            data: {
+                labels: makeLabels(),
+                datasets: [
+                    {
+                        label: 'Cam 0',
+                        data: Array(MAX_POINTS).fill(null),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: 'Cam 1',
+                        data: Array(MAX_POINTS).fill(null),
+                        borderColor: '#14b8a6',
+                        backgroundColor: 'rgba(20,184,166,.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                    },
+                ],
+            },
+            options: { ...chartDefaults(), scales: { ...chartDefaults().scales, y: { ...chartDefaults().scales.y, max: 35 } } },
+        });
+
+        // System resources chart
+        const sysCtx = document.getElementById('chart-sys').getContext('2d');
+        const sysChart = new Chart(sysCtx, {
+            type: 'line',
+            data: {
+                labels: makeLabels(),
+                datasets: [
+                    {
+                        label: 'CPU %',
+                        data: Array(MAX_POINTS).fill(null),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: 'RAM %',
+                        data: Array(MAX_POINTS).fill(null),
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168,85,247,.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: 'GPU %',
+                        data: Array(MAX_POINTS).fill(null),
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34,197,94,.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                    },
+                ],
+            },
+            options: { ...chartDefaults(), scales: { ...chartDefaults().scales, y: { ...chartDefaults().scales.y, max: 100 } } },
+        });
+
+        function pushToChart(chart, datasetIndex, value) {
+            const ds = chart.data.datasets[datasetIndex];
+            ds.data.push(value);
+            if (ds.data.length > MAX_POINTS) ds.data.shift();
+            chart.data.labels.push('');
+            if (chart.data.labels.length > MAX_POINTS) chart.data.labels.shift();
+            chart.update('none');  // 'none' = no animation, fastest update
+        }
+
+        // ── detection log ──────────────────────────────────────────────────────────────
+        const logList = document.getElementById('log-list');
+        const MAX_LOG = 80;
+
+        function addLog(camName, detections) {
+            if (!detections || detections.length === 0) return;
+
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const text = detections
+                .map(d => `${d.class_name} #${d.track_id} (${d.confidence})`)
+                .join(' · ');
+
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            item.innerHTML =
+                `<span class="log-time">${time}</span>` +
+                `<span class="log-cam">${camName}</span>` +
+                `<span class="log-text">${text}</span>`;
+
+            logList.prepend(item);
+
+            // Keep log bounded
+            while (logList.children.length > MAX_LOG) {
+                logList.removeChild(logList.lastChild);
+            }
+        }
+
+        // ── stat card updates ──────────────────────────────────────────────────────────
+        function updateStats(camIndex, meta) {
+            const m = meta.metrics;
+
+            // FPS stat cards
+            document.getElementById(`s-fps${camIndex}`).textContent =
+                meta.fps.toFixed(1);
+            document.getElementById(`s-cam${camIndex}-name`).textContent =
+                meta.camera;
+
+            // System stats — update from either camera, they carry the same data
+            document.getElementById('s-cpu').textContent = m.cpu_percent + '%';
+            document.getElementById('s-ram').textContent = m.ram_percent + '%';
+            document.getElementById('s-ram-detail').textContent =
+                `${m.ram_used_gb} / ${m.ram_total_gb} GB`;
+
+            if (m.gpu_available) {
+                document.getElementById('s-gpu').textContent = m.gpu_percent + '%';
+                document.getElementById('s-gpu-name').textContent = m.gpu_name;
+                document.getElementById('s-gmem').textContent = m.gpu_mem_used_mb;
+                document.getElementById('s-gmem-detail').textContent =
+                    `/ ${m.gpu_mem_total_mb} MB`;
+            } else {
+                document.getElementById('s-gpu').textContent = 'N/A';
+                document.getElementById('s-gpu-name').textContent = 'No NVIDIA GPU';
+                document.getElementById('s-gmem').textContent = 'N/A';
+            }
+
+            // Feed header badges
+            document.getElementById(`cam${camIndex}-fps-badge`).textContent =
+                meta.fps.toFixed(1) + ' FPS';
+
+            const statusBadge = document.getElementById(`cam${camIndex}-status-badge`);
+            statusBadge.textContent = 'live';
+            statusBadge.className = 'badge connected';
+
+            document.getElementById(`cam${camIndex}-title`).textContent = meta.camera;
+
+            // Feed overlay — detection summary
+            const det = meta.detections.length
+                ? meta.detections.map(d =>
+                    `ID:${d.track_id} ${d.class_name} (${d.confidence})`
+                ).join('  ·  ')
+                : 'no detections';
+            document.getElementById(`overlay${camIndex}`).textContent =
+                `${meta.camera}  |  ${meta.fps.toFixed(1)} FPS  |  ${det}`;
+
+            // Push to charts
+            pushToChart(fpsChart, camIndex, meta.fps);
+            pushToChart(sysChart, 0, m.cpu_percent);
+            pushToChart(sysChart, 1, m.ram_percent);
+            if (m.gpu_available) pushToChart(sysChart, 2, m.gpu_percent);
+
+            // Detection log — only log when something is detected
+            if (meta.detections.length > 0) addLog(meta.camera, meta.detections);
+
+            // Update occupancy counter — only arrives from cam0
+            if (camIndex === 0 && meta.counter) updateCounter(meta.counter);
+        }
+
+        // ── occupancy alert sound ──────────────────────────────────────────────────────
+        const alertCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAlert() {
+            const osc = alertCtx.createOscillator();
+            const gain = alertCtx.createGain();
+            osc.connect(gain);
+            gain.connect(alertCtx.destination);
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.3, alertCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, alertCtx.currentTime + 0.4);
+            osc.start(alertCtx.currentTime);
+            osc.stop(alertCtx.currentTime + 0.4);
+        }
+
+        let wasExceeded = false;
+
+        function updateCounter(counter) {
+            if (!counter) return;
+
+            const occEl = document.getElementById('s-occupancy');
+            const detailEl = document.getElementById('s-occ-detail');
+            const alertEl = document.getElementById('capacity-alert');
+            const alertMax = document.getElementById('alert-max');
+
+            document.getElementById('s-entries').textContent = counter.entries;
+            document.getElementById('s-exits').textContent = counter.exits;
+            occEl.textContent = counter.occupancy;
+            detailEl.textContent = `of ${counter.max_occupancy} max`;
+            alertMax.textContent = counter.max_occupancy;
+
+            if (counter.capacity_exceeded) {
+                occEl.style.color = 'var(--red)';
+                alertEl.style.display = 'block';
+                if (!wasExceeded) playAlert();  // play sound only on state change
+                wasExceeded = true;
+            } else {
+                occEl.style.color = 'var(--green)';
+                alertEl.style.display = 'none';
+                wasExceeded = false;
+            }
+        }
+
+        // ── camera enable / disable ────────────────────────────────────────────────────
+        const camEnabled = { cam0: null, cam1: null };  // null = unknown until first WS event
+
+        async function toggleCamera(camId) {
+            const btn = document.getElementById(`${camId}-toggle-btn`);
+            const action = camEnabled[camId] ? 'disable' : 'enable';
+            btn.disabled = true;
+            btn.textContent = '…';
+            try {
+                const res = await fetch(`/api/cameras/${camId}/${action}`, { method: 'POST' });
+                if (!res.ok) throw new Error(res.statusText);
+                // UI update happens via the WebSocket 'enabled'/'disabled' event
+            } catch {
+                // restore button so user can retry
+                btn.disabled = false;
+                btn.textContent = camEnabled[camId] ? 'Disable' : 'Enable';
+                btn.className = 'cam-toggle-btn' + (camEnabled[camId] ? '' : ' is-disabled');
+            }
+        }
+
+        function setToggleBtn(camId, enabled) {
+            const btn = document.getElementById(`${camId}-toggle-btn`);
+            camEnabled[camId] = enabled;
+            btn.disabled = false;
+            btn.textContent = enabled ? 'Disable' : 'Enable';
+            btn.className = 'cam-toggle-btn' + (enabled ? '' : ' is-disabled');
+        }
+
+        // ── WebSocket connection ───────────────────────────────────────────────────────
+        function connectCamera(wsUrl, camIndex) {
+            const camId = `cam${camIndex}`;
+            const imgEl = document.getElementById(`feed${camIndex}`);
+            let ws, lastBlobUrl, retryDelay = 1000;
+
+            function connect() {
+                ws = new WebSocket(wsUrl);
+                ws.binaryType = 'blob';
+
+                ws.onopen = () => {
+                    retryDelay = 1000;
+                };
+
+                ws.onmessage = (event) => {
+                    if (event.data instanceof Blob) {
+                        // Binary — JPEG frame
+                        const url = URL.createObjectURL(event.data);
+                        imgEl.onload = () => {
+                            if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+                            lastBlobUrl = url;
+                        };
+                        imgEl.src = url;
+                    } else {
+                        // Text — JSON
+                        const data = JSON.parse(event.data);
+
+                        if (data.type === 'meta') {
+                            updateStats(camIndex, data);
+
+                        } else if (data.type === 'disabled') {
+                            imgEl.src = '';
+                            if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
+
+                            const badge = document.getElementById(`cam${camIndex}-status-badge`);
+                            badge.textContent = 'disabled';
+                            badge.className = 'badge';
+                            badge.style.color = 'var(--muted)';
+                            badge.style.borderColor = 'var(--border)';
+
+                            document.getElementById(`cam${camIndex}-fps-badge`).textContent = '— FPS';
+                            document.getElementById(`s-fps${camIndex}`).textContent = '—';
+                            document.getElementById(`overlay${camIndex}`).textContent = 'Camera disabled';
+                            setToggleBtn(camId, false);
+
+                        } else if (data.type === 'enabled') {
+                            const badge = document.getElementById(`cam${camIndex}-status-badge`);
+                            badge.textContent = 'connecting';
+                            badge.className = 'badge';
+                            badge.style.color = '';
+                            badge.style.borderColor = '';
+                            document.getElementById(`overlay${camIndex}`).textContent = 'Connecting to stream...';
+                            setToggleBtn(camId, true);
+
+                        } else if (data.type === 'disconnected') {
+                            imgEl.src = '';
+                            if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
+
+                            const badge = document.getElementById(`cam${camIndex}-status-badge`);
+                            badge.textContent = 'disconnected';
+                            badge.className = 'badge';
+                            badge.style.color = 'var(--red)';
+                            badge.style.borderColor = 'var(--red)';
+
+                            document.getElementById(`cam${camIndex}-fps-badge`).textContent = '— FPS';
+                            document.getElementById(`s-fps${camIndex}`).textContent = '—';
+                            document.getElementById(`overlay${camIndex}`).textContent =
+                                `${data.camera} — camera disconnected`;
+                            setToggleBtn(camId, true);  // still enabled, just physically disconnected
+
+                        } else if (data.type === 'reconnected') {
+                            const badge = document.getElementById(`cam${camIndex}-status-badge`);
+                            badge.textContent = 'live';
+                            badge.className = 'badge connected';
+                            badge.style.color = '';
+                            badge.style.borderColor = '';
+                            document.getElementById(`overlay${camIndex}`).textContent =
+                                `${data.camera} — reconnected`;
+                            setToggleBtn(camId, true);
+                        }
+                        // keepalive — do nothing
+                    }
+                };
+
+                ws.onclose = () => {
+                    const badge = document.getElementById(`cam${camIndex}-status-badge`);
+                    badge.textContent = 'reconnecting...';
+                    badge.className = 'badge';
+                    retryDelay = Math.min(retryDelay * 1.5, 8000);
+                    setTimeout(connect, retryDelay);
+                };
+
+                ws.onerror = () => ws.close();
+            }
+
+            connect();
+        }
+
+        // ── uptime counter ─────────────────────────────────────────────────────────────
+        const startTime = Date.now();
+        setInterval(() => {
+            const s = Math.floor((Date.now() - startTime) / 1000);
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            document.getElementById('uptime-display').textContent =
+                h > 0
+                    ? `Uptime: ${h}h ${m}m ${sec}s`
+                    : m > 0
+                        ? `Uptime: ${m}m ${sec}s`
+                        : `Uptime: ${sec}s`;
+        }, 1000);
+
+        // ── start both streams ─────────────────────────────────────────────────────────
+        connectCamera('ws://localhost:8000/ws/cam0', 0);
+        connectCamera('ws://localhost:8000/ws/cam1', 1);
+    </script>
+</body>
+
+</html>
